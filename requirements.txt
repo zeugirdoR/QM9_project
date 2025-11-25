@@ -1,0 +1,23 @@
+# requirements.txt
+# Plan: once you have one “good” environment that actually trains, you run:
+# pip freeze > requirements.txt
+# and that becomes your canonical environment.
+# From then on, any machine can recreate it with:
+# pip install -r requirements.txt
+# 
+torch==2.9.0+cu126          # match your current Colab version
+torchaudio==2.9.0+cu126     # optional, if present
+torchvision==0.20.0+cu126   # optional
+
+# PyG stack – use versions that actually work in your environment.
+# For now, you can leave them unpinned until you know what works, then freeze.
+torch-geometric
+pyg-lib
+torch-scatter
+torch-sparse
+torch-cluster
+torch-spline-conv
+
+numpy
+tqdm
+psutil
