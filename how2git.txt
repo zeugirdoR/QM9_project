@@ -1,0 +1,219 @@
+cd /home/crod569/QM9_project
+git status
+
+#  You should see something like:
+On branch main
+your branch is up to date with 'origin/main'.
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  ...
+Untracked files:
+  ...
+#####
+2. Make sure you’re not about to commit huge junk
+
+You want code & config only in this repo, not:
+
+model checkpoints (*.pt, *.pth)
+
+huge data (data/qm9_raw, data/qm9_processed, GAHEAD_runs, etc.)
+
+Google Drive wheelhouse, etc.
+
+Open (or create) .gitignore in the repo and add patterns like:
+########
+# Python junk
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# Notebooks' noise
+.ipynb_checkpoints/
+
+# Virtual envs
+env/
+venv/
+.venv/
+
+# Data (adjust if you do want some tiny toy data committed)
+data/qm9_raw/
+data/qm9_processed/
+data/*.npz
+data/*.npy
+
+# Checkpoints & runs
+checkpoints/
+runs/
+*.pt
+*.pth
+
+# Wheel caches
+wheelhouse/
+*.whl
+
+####
+# then
+git add .gitignore
+
+####
+3. See what you’re about to commit
+
+Still in /home/crod569/QM9_project:
+####
+git status
+
+####
+Look at the “untracked files” / “modified” section and make sure it’s all things you want in the repo (e.g., env/setup_pyg_colab.py, eval_qm9_legacy.py, adjusted requirements.txt, etc.).
+
+If you want to inspect actual changes:
+#######
+git diff             # changes in tracked files
+git diff --stat      # summary (short)
+
+######
+4. Stage & commit your changes
+
+To stage everything except what’s ignored:
+######
+git add .
+
+#####
+(If you want to be more careful, you can do git add file1 file2 ... instead.)
+
+Then commit:
+####
+git commit -m "Tidy Colab env + PyG setup and QM9 baselines"
+
+####
+If git says “nothing to commit”, then there were no tracked changes—only untracked or ignored stuff.
+####
+
+5. Sync with remote safely (pull --rebase if needed)
+
+First, see your remotes:
+#####
+git remote -v
+
+####
+You should see:
+####
+origin  git@github.com:zeugirdoR/QM9_project.git (fetch)
+origin  git@github.com:zeugirdoR/QM9_project.git (push)
+
+####
+Now, before pushing, pull in anything new from GitHub (if any):
+###
+git pull --rebase origin main
+
+###
+If nothing changed on GitHub, this’ll just say “Already up to date.”
+
+If there are changes, git may drop you into conflict resolution; fix those files, git add them, then:
+####
+git rebase --continue
+
+####
+Repeat until the rebase completes.
+
+Check again:
+####
+git status
+
+###
+You want something like:
+###
+On branch main
+nothing to commit, working tree clean
+your branch is ahead of 'origin/main' by 1 commit.
+
+####
+6. Push your local state → GitHub
+
+Now you can safely push:
+####
+git push origin main
+
+####
+If this is the first push for main you might already have:
+###
+git push -u origin main
+
+####
+(-u just sets upstream so later you can do plain git push / git pull).
+
+After that, your GitHub repo will exactly mirror /home/crod569/QM9_project (minus ignored stuff).
+####
+
+7. Later: syncing from Colab back and forth
+
+Once your pip install finishes on Colab and you’re ready to let Colab edit code too, the workflow becomes:
+
+On Colab
+####
+%cd /content/QM9_project
+!git pull   # get latest from laptop/GitHub
+
+# ... edit files in Colab ...
+!git status
+!git add .
+!git commit -m "Experiment: stable PyG env + sanity check notebook"
+!git push
+
+####
+Back on laptop
+####
+cd /home/crod569/QM9_project
+git pull    # brings in whatever you committed from Colab
+
+####
+And so on—always pull before you push if you’ve used both machines.
+###
+#########################
+Saving the environment:
+####
+cd /home/crod569/QM9_project      # on laptop
+# or: %cd /content/QM9_project    # on Colab
+
+python env/print_qm9_env.py
+
+#####
+You should see a full summary: torch version, CUDA, GPU name, torch_geometric, scatter/sparse/cluster/spline-conv, numpy/scipy, plus the current git commit.
+
+2. Commit it so every experiment knows its env
+
+On your laptop:
+####
+cd /home/crod569/QM9_project
+git add env/print_qm9_env.py
+git commit -m "Add QM9 environment summary script"
+git push
+
+######
+Then every time you start a new Colab session you can:
+####
+%cd /content/QM9_project
+!git pull
+!python env/print_qm9_env.py
+
+#####
+# not git but usefull....
+How to use these wheels in a fresh runtime (later)
+
+In a future Colab session, after mounting Drive and cloning/pulling your repo, you can install everything locally from Drive:
+#######
+from google.colab import drive
+drive.mount("/content/drive")
+
+WHEEL_DIR = "/content/drive/MyDrive/wheelhouse/cu126_torch2.9_pyg2.7"
+
+!python -m pip install \
+  --no-index --find-links="$WHEEL_DIR" \
+  torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric scipy
+
+import torch, torch_geometric
+print("torch:", torch.__version__)
+print("torch_geometric:", torch_geometric.__version__)
+
+#################
