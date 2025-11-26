@@ -21,3 +21,20 @@ torch-spline-conv
 numpy
 tqdm
 psutil
+
+
+################################
+Next session you’ll be able to skip the 1-hour compile with:
+######
+# FUTURE CELL 0 - Fast reinstall of PyG stack from saved wheels
+
+from google.colab import drive
+drive.mount('/content/drive')
+
+WHEEL_DIR = "/content/drive/MyDrive/PyG_
+wheels_torch29_cu126"
+!pip install {WHEEL_DIR}/*.whl
+
+#################
+
+
